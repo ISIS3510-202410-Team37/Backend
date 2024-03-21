@@ -11,12 +11,15 @@ def getRestaurants():
     restaurants = []
     try:
         restaurant_docs = firestore.client().collection('restaurants').get()
-        
+
         for doc in restaurant_docs:
-            restaurants.append(doc.to_dict())
+            restaurant_data = doc.to_dict()
+            restaurant_data['docId'] = doc.id
+            restaurants.append(restaurant_data)
+            
     except Exception as e:
         print(f"Error al obtener la lista de restaurantes: {e}")
-        return None 
+        return None
 
     return restaurants
 
