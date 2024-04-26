@@ -101,7 +101,44 @@ def filter_recommend(userId, categoryFilter):
     elif categoryFilter == 'restrictions':
         return get_recommend_restaurants_by_restrictions(userId)
 
+@app.route('/most_liked/<string:userLat>/<string:userLong>', methods=['GET'])
+def get_most_liked_restaurants(userLat, userLong):
 
+    restaurants = getRestaurants()
+    sorted_restaurants = sorted(restaurants, key=lambda x: x['likes'], reverse=True)
+    nearby_restaurants = [restaurant for restaurant in sorted_restaurants if is_nearby_restaurant(restaurant, userLat, userLong)]
+    
+    return nearby_restaurants[:5]
+    
+def is_nearby_restaurant(item, userLat, userLong):
+    
+    restaurant_lat = float(item['latitud'])
+    restaurant_long = float(item['longitud'])
+    
+    def calculate_distance_in_km(lat1, lon1, lat2, lon2):
+        R = 6371.0  # Radius of the Earth in kilometers
+
+        lat1_rad = radians(lat1)
+        lon1_rad = radians(lon1)
+        lat2_rad = radians(lat2)
+        lon2_rad = radians(lon2)
+
+        dlon = lon2_rad - lon1_rad
+        dlat = lat2_rad - lat1_rad
+
+        a = sin(dlat / 2)**2 + cos(lat1_rad) * cos(lat2_rad) * sin(dlon / 2)**2
+        c = 2 * atan2(sqrt(a), sqrt(1 - a))
+
+        distance = R * c
+        return distance
+
+    distance = calculate_distance_in_km(
+        userLat,
+        userLong,
+        restaurant_lat,
+        restaurant_long)
+    
+    return distance <= 0.5
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0',port=5000)
