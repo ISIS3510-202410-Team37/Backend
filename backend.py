@@ -168,10 +168,14 @@ def is_nearby_restaurant(item, userLat, userLong):
 
     return distance <= 0.5
 
-@app.route("/dishes_by_price_range/<string:minPrice>/<string:maxPrice><string:userLat>/<string:userLong>", methods=["GET"])
-def get_dishes_by_price_range_endpoint(minPrice, maxPrice, userLat, userLong):
-    min_price = float(minPrice)
-    max_price = float(maxPrice)
+@app.route("/dishes_by_price_range/<string:userId>/<string:userLat>/<string:userLong>", methods=["GET"])
+def get_dishes_by_price_range_endpoint(userId, userLat, userLong):
+
+    user_preferences = getUserPreferences(userId)
+    
+    min_price = user_preferences[0]["priceRange"]["minPrice"]
+    max_price = user_preferences[0]["priceRange"]["maxPrice"]
+    
     user_lat = float(userLat)
     user_long = float(userLong)
 
@@ -194,14 +198,13 @@ def get_dishes_by_price_range(min_price, max_price, user_lat, user_long):
                     firestore.client()
                     .collection("restaurants")
                     .document(doc.id)
-                    .collection("dishes")
+                    .collection("plates")
                     .get()
                 )
 
                 for dish in dish_docs:
                     dish_data = dish.to_dict()
                     dish_data["restaurantId"] = doc.id
-                    dish_data["restaurantName"] = restaurant_data["name"]
 
                     if min_price <= dish_data["price"] <= max_price:
                         dishes.append(dish_data)
